@@ -11,6 +11,7 @@ add_executable(universe
     src/glad.c
     src/main.cpp
     includes/config.h
+    src/shader/shader.cpp
 )
 
 target_include_directories(universe PRIVATE 

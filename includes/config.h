@@ -18,3 +18,15 @@
 #include "math.h"
 
 #include <vector>
+
+// config class
+
+namespace cfg {
+    // win parameters
+    inline float winWidth = 700.0f;
+    inline float winHeight = 700.0f;
+
+    inline float speed = 10.0f;
+    inline float sensitivity = 0.1f;
+    inline float fov = 45.0f;
+}

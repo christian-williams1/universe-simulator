@@ -6,14 +6,18 @@ class Inputs
 {
     public:
         // constructor
-        Inputs(GLFWwindow *window, glm::vec3 cameraPosition, float x, float y, float fov);
+        Inputs(GLFWwindow *window, glm::vec3 cameraPosition);
 
         // user interaction
-        void mouse_callback(double xpos, double ypos);
-        void process_input(float dt);
+        void process_mouse(double xoffset, double yoffset);
+        void process_input(float dt, int shader);
 
     private:
         GLFWwindow *window;
+
+        // sensitivities
+        float speed;
+        float sensitivity;
 
         // camera vectors
         glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -3.0f);

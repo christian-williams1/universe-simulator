@@ -12,6 +12,7 @@ add_executable(universe
     src/main.cpp
     includes/config.h
     src/shader/shader.cpp
+    includes/inputs/inputs.h
 )
 
 target_include_directories(universe PRIVATE 

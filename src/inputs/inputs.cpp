@@ -1,6 +1,6 @@
 #include "../includes/inputs/inputs.h"
 
-Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition)
+Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader)
 {
     this->window = window;
 
@@ -8,6 +8,10 @@ Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition)
     this->cameraPos = cameraPosition;
     this->lastX = cfg::winWidth/2.0f;
     this->lastY = cfg::winHeight/2.0f;
+
+    // setting perspective
+
+    this->projection = glm::mat4(1.0f);
 }
 
 void Inputs::process_input(float dt, int shader)
@@ -26,20 +30,25 @@ void Inputs::process_input(float dt, int shader)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        cameraPos += cameraSpeed*cameraUp;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        cameraPos -= cameraSpeed*cameraUp;
+    }
+    
+    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 1000.0f); // possibly move out of loop
 
-    glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-
-    // before the cube loop
-    glm::mat4 projection = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 1000.0f);
-
-    // upload once
-    int viewLoc = glGetUniformLocation(shader, "view");
     int projLoc = glGetUniformLocation(shader, "projection");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    
+    this->view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+    int viewLoc = glGetUniformLocation(shader, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 }
 
 

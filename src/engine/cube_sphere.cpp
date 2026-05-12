@@ -13,6 +13,7 @@ CubeSphere::CubeSphere(int LOD)
         glm::vec3{ 0.0f,  0.0f,  1.0f}    // back
     };
 
+    // generating 6 faces
     for (int i = 0; i < 6; i++)
     {
         generate_face(faces[i], LOD);
@@ -25,7 +26,7 @@ void CubeSphere::generate_face(glm::vec3 faceDir, int LOD)
     glm::vec3 axisA = glm::vec3{faceDir.y, faceDir.z, faceDir.x};
     glm::vec3 axisB = glm::cross(faceDir, axisA);
 
-    float radius = 3.0f; // constant for now
+    //float radius = 3.0f; // constant for now
 
     for (int i = 0; i < LOD; i++)
     {
@@ -35,7 +36,7 @@ void CubeSphere::generate_face(glm::vec3 faceDir, int LOD)
             glm::vec3 vertex = faceDir + (point.x - 0.5f)*2.0f*axisA + (point.y - 0.5f)*2.0f*axisB;
 
             // projecting onto sphere
-            glm::vec3 projection = radius*glm::normalize(vertex);
+            glm::vec3 projection = glm::normalize(vertex);
             this->vertices.push_back(projection);
 
             // indexing

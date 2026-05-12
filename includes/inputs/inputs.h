@@ -6,11 +6,14 @@ class Inputs
 {
     public:
         // constructor
-        Inputs(GLFWwindow *window, glm::vec3 cameraPosition);
+        Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader);
 
         // user interaction
         void process_mouse(double xoffset, double yoffset);
         void process_input(float dt, int shader);
+
+        glm::mat4 projection;
+        glm::mat4 view;
 
     private:
         GLFWwindow *window;

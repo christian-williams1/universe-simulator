@@ -10,6 +10,6 @@ add_executable(universe ${SOURCES})
 
 target_include_directories(universe PRIVATE 
     ${CMAKE_SOURCE_DIR}/dependencies
-    ${CMAKE_SOURCE_DIR}/include)
+    ${CMAKE_SOURCE_DIR}/includes)
 
 target_link_libraries(universe glfw3 OpenGL::GL)

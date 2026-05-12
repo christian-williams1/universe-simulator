@@ -3,8 +3,8 @@
 #include "../includes/render/shader.h"
 #include "../includes/inputs/inputs.h"
 
-//void processInput(GLFWwindow *window, int shader);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+// void processInput(GLFWwindow *window, int shader);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
 // keeping track of time betweeen each frame
 float deltaTime = 0.0f;
@@ -13,13 +13,11 @@ float lastFrame = 0.0f;
 // defining mouse movement vars
 Inputs *glblInputs = nullptr;
 bool firstMouse = true;
-float lastX = cfg::winWidth/2.0f;
-float lastY = cfg::winHeight/2.0f;
+float lastX = cfg::winWidth / 2.0f;
+float lastY = cfg::winHeight / 2.0f;
 
 int main()
 {
-    // initialising window
-    GLFWwindow *window;
 
     if (!glfwInit())
     {
@@ -28,7 +26,35 @@ int main()
         return -1;
     }
 
-    window = glfwCreateWindow(700, 700, "program", NULL, NULL);
+    // initialising window and monitor
+    GLFWmonitor *primary = glfwGetPrimaryMonitor();
+    GLFWwindow *window;
+    const GLFWvidmode *mode = glfwGetVideoMode(primary);
+
+    if (primary == NULL)
+    {
+        std::cout << "Unable to fetch primary monitor" << std::endl;
+
+        return -1;
+    }
+
+    if (mode == NULL)
+    {
+        std::cout << "Unable to initialise GLFWvidmode" << std::endl;
+
+        return -1;
+    }
+
+    glfwWindowHint(GLFW_REFRESH_RATE, 60);
+    cfg::winWidth = static_cast<float>(mode->width);
+    cfg::winHeight = static_cast<float>(mode->height);
+
+    std::cout << cfg::winWidth << "\n";
+    std::cout << cfg::winHeight << "\n";
+    std::cout << "Refresh Rate: " << mode->refreshRate << std::endl;
+
+    window = glfwCreateWindow(cfg::winWidth, cfg::winHeight, "program", NULL, NULL);
+    glfwSetWindowPos(window, 0, 0);
 
     if (window == NULL)
     {
@@ -58,16 +84,15 @@ int main()
     Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
 
     std::vector<float> vertices = {
-        -0.5f, -0.5f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,   // top left
-         0.5f, -0.5f, 0.0f,   // bottom right
-         0.5f,  0.5f, 0.0f    // top right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f,  // top left
+        0.5f, -0.5f, 0.0f,  // bottom right
+        0.5f, 0.5f, 0.0f    // top right
     };
 
     std::vector<unsigned int> indices = {
         0, 1, 2,
-        1, 2, 3
-    };
+        1, 2, 3};
 
     unsigned int EBO;
     unsigned int VBO;
@@ -80,12 +105,12 @@ int main()
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
     glUseProgram(shader.shaderID);
@@ -107,11 +132,12 @@ int main()
     }
 
     glBindVertexArray(0);
+    glfwDestroyWindow(window);
     return 0;
 }
 
 // controlling rotational movement of the screen via mouse
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 {
     if (firstMouse)
     {
@@ -119,11 +145,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         lastY = ypos;
         firstMouse = false;
     }
-  
+
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; 
+    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
     glblInputs->process_mouse(xoffset, yoffset);
-}  
+}

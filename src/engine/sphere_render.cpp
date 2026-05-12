@@ -21,13 +21,18 @@ SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<uns
     this->color = color;
 }
 
-void SphereRenderer::draw(const Shader &shader)
+void SphereRenderer::draw(const Shader &shader, glm::vec3 position)
 {
     glUseProgram(shader.shaderID);
     
     glBindVertexArray(VAO);
     int vertexColorLoc = glGetUniformLocation(shader.shaderID, "col");
     glUniform3f(vertexColorLoc, color.x, color.y, color.z);
+
+    int modelLoc = glGetUniformLocation(shader.shaderID, "model");
+    glm::mat4 model = glm::mat4{1.0f};
+    model = glm::translate(model, position);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, 0);
 }

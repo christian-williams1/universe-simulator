@@ -19,6 +19,11 @@ bool firstMouse = true;
 float lastX = cfg::winWidth / 2.0f;
 float lastY = cfg::winHeight / 2.0f;
 
+struct Body {
+    glm::vec3 position;
+    glm::vec3 velocity;
+};
+
 int main()
 {
 
@@ -98,8 +103,21 @@ int main()
 
     // creating planets
     SphereRenderer *planetOne = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{1.0f, 0.0f, 0.0f});
+    SphereRenderer *planetTwo = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{0.0f, 1.0f, 0.0f});
+    SphereRenderer *planetThree = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{0.0f, 0.0f, 1.0f});
+    
+    Body bodyOne = {glm::vec3{0.0f, 4.0f, 2.0f}, glm::vec3{-3.0f, 0.0f, 1.0f}};
+    Body bodyTwo = {glm::vec3{1.0f, -2.0f, 1.0f}, glm::vec3{1.0f, -4.0f, -1.0f}};
+    Body bodyThree = {glm::vec3{2.0f, 2.0f, -3.0f}, glm::vec3{3.0f, -2.0f, 2.0f}};
+
+    std::vector<Body> bodies = {bodyOne, bodyTwo, bodyThree};
+
+    float G = 1.0f;
 
     glUseProgram(shader.shaderID);
+
+    int perished[2] = {4, 4};
+    bool battleOver = false;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -110,15 +128,48 @@ int main()
 
         // processing any inputs on the stack to update view matrix
         inputs.process_input(deltaTime, shader.shaderID); // updating general
-        //inputs.update_skybox(skyboxShader.shaderID); // updating skybox view
 
         glClearColor(0.01f, 0.01f, 0.02f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // drawing scene
-        //skybox->draw(skyboxShader, inputs.projection, inputs.view);
+        // TEMPORARY!!! physics code for proof of concept
+        float gravitationalConstant = 50.0f;
+        if (!battleOver)
+        {
+            for (int i = 0; i < bodies.size(); i++)
+            {
+                glm::vec3 force = glm::vec3{0.0f, 0.0f, 0.0f};
+                for (int j = 0; j < bodies.size(); j++)
+                {
+                    if (i == j) continue;
 
-        planetOne->draw(shader);
+                    // calculate relative position and distance
+                    glm::vec3 r = bodies[j].position - bodies[i].position;
+                    float rsq = glm::dot(r,r);
+
+                    if (rsq < 2)
+                    {
+                        perished[0] = i;
+                        perished[1] = j;
+                        battleOver = true;
+                    } // collision -> add something here
+
+                    float forceMagnitude = gravitationalConstant/rsq; // calculate force magnitude
+                    force += glm::normalize(r)*forceMagnitude;
+                }
+
+                glm::vec3 acceleration = force;
+
+                // using eulers method to calculate new vel and position
+                bodies[i].velocity += acceleration*deltaTime;
+                bodies[i].position += bodies[i].velocity*deltaTime; // possibly move to seperate loop
+            }
+        }
+
+        // instancing is for nerds
+        if (perished[0] != 0 && perished[1] != 0){planetOne->draw(shader, bodies[0].position);}
+        if (perished[0] != 1 && perished[1] != 1){planetTwo->draw(shader, bodies[1].position);}
+        if (perished[0] != 2 && perished[1] != 2){planetThree->draw(shader, bodies[2].position);}
 
         glfwSwapBuffers(window);
         glfwPollEvents(); // remove events from stack

@@ -19,10 +19,10 @@ bool firstMouse = true;
 float lastX = cfg::winWidth / 2.0f;
 float lastY = cfg::winHeight / 2.0f;
 
-struct Body {
-    glm::vec3 position;
-    glm::vec3 velocity;
-};
+// struct Body {
+//     glm::vec3 position;
+//     glm::vec3 velocity;
+//};
 
 int main()
 {
@@ -106,18 +106,21 @@ int main()
     SphereRenderer *planetTwo = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{0.0f, 1.0f, 0.0f});
     SphereRenderer *planetThree = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{0.0f, 0.0f, 1.0f});
     
-    Body bodyOne = {glm::vec3{0.0f, 4.0f, 2.0f}, glm::vec3{-3.0f, 0.0f, 1.0f}};
-    Body bodyTwo = {glm::vec3{1.0f, -2.0f, 1.0f}, glm::vec3{1.0f, -4.0f, -1.0f}};
-    Body bodyThree = {glm::vec3{2.0f, 2.0f, -3.0f}, glm::vec3{3.0f, -2.0f, 2.0f}};
+    // param tester one
+    Body bodyOne = {glm::vec3{4.0f, 4.0f, 2.0f}, glm::vec3{3.0f, 0.0f, 1.0f}};
+    Body bodyTwo = {glm::vec3{1.0f, -2.0f, 1.0f}, glm::vec3{-5.0f, -4.0f, -1.0f}};
+    Body bodyThree = {glm::vec3{-3.0f, 2.0f, -3.0f}, glm::vec3{3.0f, -2.0f, 2.0f}};
+
+    //Body bodyOne = {glm::vec3{2.0f, 4.0f, 2.0f}, glm::vec3{-5.0f, 3.0f, 1.0f}};
+    //Body bodyTwo = {glm::vec3{1.0f, -2.0f, 1.0f}, glm::vec3{1.0f, -4.0f, -1.0f}};
+    //Body bodyThree = {glm::vec3{-3.0f, 2.0f, -3.0f}, glm::vec3{3.0f, -2.0f, 2.0f}};
 
     std::vector<Body> bodies = {bodyOne, bodyTwo, bodyThree};
-
-    float G = 1.0f;
 
     glUseProgram(shader.shaderID);
 
     int perished[2] = {4, 4};
-    bool battleOver = false;
+    bool collision = true;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -127,18 +130,20 @@ int main()
         lastFrame = currentFrame;
 
         // processing any inputs on the stack to update view matrix
-        inputs.process_input(deltaTime, shader.shaderID); // updating general
+        inputs.process_input(deltaTime, shader.shaderID, bodies); // updating general
 
         glClearColor(0.01f, 0.01f, 0.02f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // TEMPORARY!!! physics code for proof of concept
-        float gravitationalConstant = 50.0f;
-        if (!battleOver)
+        float gravitationalConstant = 100.0f;
+        glm::vec3 force;
+        
+        if (!collision) // gravity stops when planets collide
         {
             for (int i = 0; i < bodies.size(); i++)
             {
-                glm::vec3 force = glm::vec3{0.0f, 0.0f, 0.0f};
+                force = glm::vec3{0.0f};
                 for (int j = 0; j < bodies.size(); j++)
                 {
                     if (i == j) continue;
@@ -147,12 +152,13 @@ int main()
                     glm::vec3 r = bodies[j].position - bodies[i].position;
                     float rsq = glm::dot(r,r);
 
-                    if (rsq < 2)
+                    // collision
+                    if (rsq < 1)
                     {
                         perished[0] = i;
                         perished[1] = j;
-                        battleOver = true;
-                    } // collision -> add something here
+                        collision = true;
+                    }
 
                     float forceMagnitude = gravitationalConstant/rsq; // calculate force magnitude
                     force += glm::normalize(r)*forceMagnitude;
@@ -162,8 +168,12 @@ int main()
 
                 // using eulers method to calculate new vel and position
                 bodies[i].velocity += acceleration*deltaTime;
-                bodies[i].position += bodies[i].velocity*deltaTime; // possibly move to seperate loop
             }
+        }
+
+        for (int i = 0; i < bodies.size(); i++)
+        {
+            bodies[i].position = bodies[i].velocity*deltaTime;
         }
 
         // instancing is for nerds

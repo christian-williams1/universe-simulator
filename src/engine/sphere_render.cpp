@@ -21,7 +21,7 @@ SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<uns
     this->color = color;
 }
 
-void SphereRenderer::draw(const Shader &shader, glm::vec3 position)
+void SphereRenderer::draw(const Shader &shader, glm::vec3 position, float scale)
 {
     glUseProgram(shader.shaderID);
     
@@ -32,6 +32,7 @@ void SphereRenderer::draw(const Shader &shader, glm::vec3 position)
     int modelLoc = glGetUniformLocation(shader.shaderID, "model");
     glm::mat4 model = glm::mat4{1.0f};
     model = glm::translate(model, position);
+    model = glm::scale(model, glm::vec3{scale});
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, 0);

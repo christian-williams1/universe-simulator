@@ -27,7 +27,12 @@ namespace cfg {
     inline float winWidth = 700.0f;
     inline float winHeight = 700.0f;
 
+    // player parameters
     inline float speed = 10.0f;
     inline float sensitivity = 0.1f;
     inline float fov = 45.0f;
+
+    // mathematical constants
+    inline const double PI = 3.14159265359;
+    inline const double G = 100.0f;
 }

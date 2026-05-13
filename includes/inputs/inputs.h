@@ -2,6 +2,12 @@
 
 #include "../config.h"
 
+// TEMP
+struct Body {
+    glm::vec3 position;
+    glm::vec3 velocity;
+};
+
 class Inputs
 {
     public:
@@ -10,7 +16,7 @@ class Inputs
 
         // user interaction
         void process_mouse(double xoffset, double yoffset);
-        void process_input(float dt, int shader);
+        void process_input(float dt, int shader, std::vector<Body> bodies);
 
         glm::mat4 projection;
         
@@ -24,7 +30,7 @@ class Inputs
         float sensitivity;
 
         // camera vectors
-        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -3.0f);
+        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 

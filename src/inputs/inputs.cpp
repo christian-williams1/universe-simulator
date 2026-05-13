@@ -14,8 +14,9 @@ Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader)
     this->projection = glm::mat4(1.0f);
 }
 
-void Inputs::process_input(float dt, int shader)
+void Inputs::process_input(float dt, int shader, std::vector<Body> bodies)
 {
+    static int followCol = -1;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
@@ -38,6 +39,13 @@ void Inputs::process_input(float dt, int shader)
     {
         cameraPos -= cameraSpeed*cameraUp;
     }
+
+    // temp
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || followCol == 0) {cameraPos = bodies[0].position+glm::vec3{-1.0f, 2.0f, 0.0f}; followCol = 0;}
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS || followCol == 1) {cameraPos = bodies[1].position+glm::vec3{-1.0f, 2.0f, 0.0f}; followCol = 1;}
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS || followCol == 2) {cameraPos = bodies[2].position+glm::vec3{-1.0f, 2.0f, 0.0f}; followCol = 2;}
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {followCol = -1;}
+    // temporary
     
     this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 1000.0f); // possibly move out of loop
 

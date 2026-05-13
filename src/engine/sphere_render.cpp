@@ -1,6 +1,7 @@
 #include "../includes/render/sphere_render.h"
+#include "../includes/simulation/body.h"
 
-SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices, glm::vec3 color)
+SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices)
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -18,21 +19,22 @@ SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<uns
     glEnableVertexAttribArray(0);
 
     this->idxCount = indices.size(); // storing index count for static geometry of cube sphere
-    this->color = color;
 }
 
-void SphereRenderer::draw(const Shader &shader, glm::vec3 position, float scale)
+void SphereRenderer::draw(const Shader &shader, Body &body)
 {
     glUseProgram(shader.shaderID);
     
     glBindVertexArray(VAO);
+    glm::vec3 color = body.get_color();
+    
     int vertexColorLoc = glGetUniformLocation(shader.shaderID, "col");
     glUniform3f(vertexColorLoc, color.x, color.y, color.z);
 
     int modelLoc = glGetUniformLocation(shader.shaderID, "model");
     glm::mat4 model = glm::mat4{1.0f};
-    model = glm::translate(model, position);
-    model = glm::scale(model, glm::vec3{scale});
+    model = glm::translate(model, body.position);
+    model = glm::scale(model, glm::vec3{body.get_size()});
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, 0);

@@ -1,20 +1,52 @@
 #include "../includes/simulation/orbit.h"
+#include "../includes/math/math_utils.h"
+
+// got much of the maths and theory from
+// https://stjarnhimlen.se/comp/ppcomp.html
 
 // values are currently hardcoded but needs to be not so hardcoded
 
-Orbit::Orbit(float seed, Orbit &parent)
+Orbit::Orbit(double parentMass, double mass)
 {
-    // assigning parent node
-    this->parent = &parent;
-
     // hardcoding properties at the moment
-    this->mass = 1.0f;
-    elements = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    elements = {0.1, 100.0, 0.0, 0.0, 0.0};
 
-    // calculating mean motion
-    this->mean = sqrt(cfg::G*mass/pow(abs(elements.semiMajorAxis), 3)); // n = sqrt(u/|a|^3)
-    this->period = 2*cfg::PI/mean;
+    // assigning parent mass properties
+    if (parentMass != 0.0)
+    {
+        // calculating mean motion
+        this->mean = sqrt(cfg::G * parentMass / pow(abs(elements.semiMajorAxis), 3)); // n = sqrt(u/|a|^3)
 
-    // calculating sphere of influence
-    this->soi = elements.semiMajorAxis*pow(parent.mass/mass, 0.4); // a*(M/m)^2/5
+        // calculating sphere of influence
+        this->soi = elements.semiMajorAxis * pow(parentMass / mass, 0.4); // a*(M/m)^2/5
+    }
+
+    this->epoch = glfwGetTime();
+}
+
+glm::vec3 Orbit::next_position()
+{
+    // this function gets the position of the next point in its orbit relative to the parent body
+    float currentTime = glfwGetTime();
+
+    double meanAnomaly = 100*mean * (currentTime - epoch);
+
+    double E = newtons_method(meanAnomaly, elements.eccentricity);
+
+    // finding true anomaly along x and y axes
+    double xv = elements.semiMajorAxis * (cos(E) - elements.eccentricity);
+    double yv = elements.semiMajorAxis * (sqrt(1 - elements.eccentricity * elements.eccentricity) * sin(E));
+
+    double r = sqrt(xv * xv + yv * yv);
+    double v = atan2(yv, xv);
+
+    double N = elements.ascendingNode;
+    double w = elements.periapsis;
+    double i = elements.inclination;
+
+    double x = r * (cos(N) * cos(v + w) - sin(N) * sin(v + w) * cos(i));
+    double y = r * (sin(N) * cos(v + w) + cos(N) * sin(v + w) * cos(i));
+    double z = r * (sin(v + w) * sin(i));
+
+    return glm::vec3{x, y, z};
 }

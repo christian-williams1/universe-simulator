@@ -5,6 +5,8 @@
 #include "../includes/render/cube_sphere.h"
 #include "../includes/render/sphere_render.h"
 #include "../includes/render/cube_map.h"
+#include "../includes/simulation/body.h"
+#include "../includes/simulation/orbit.h"
 
 // void processInput(GLFWwindow *window, int shader);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -71,7 +73,7 @@ int main()
 
         return -1;
     }
-    
+
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
 
@@ -94,7 +96,7 @@ int main()
     glblInputs = &inputs;
 
     // creating skybox
-    //SkyBox *skybox = new SkyBox();
+    // SkyBox *skybox = new SkyBox();
 
     glEnable(GL_DEPTH_TEST);
 
@@ -102,20 +104,12 @@ int main()
     CubeSphere cubeSphere(20);
 
     // creating planets
-    SphereRenderer *planetOne = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{1.0f, 0.0f, 0.0f});
-    SphereRenderer *planetTwo = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{0.0f, 1.0f, 0.0f});
-    SphereRenderer *planetThree = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, glm::vec3{0.0f, 0.0f, 1.0f});
-    
-    // param tester one
-    Body bodyOne = {glm::vec3{4.0f, 4.0f, 2.0f}, glm::vec3{3.0f, 0.0f, 1.0f}};
-    Body bodyTwo = {glm::vec3{1.0f, -2.0f, 1.0f}, glm::vec3{-5.0f, -4.0f, -1.0f}};
-    Body bodyThree = {glm::vec3{-3.0f, 2.0f, -3.0f}, glm::vec3{3.0f, -2.0f, 2.0f}};
-
-    //Body bodyOne = {glm::vec3{2.0f, 4.0f, 2.0f}, glm::vec3{-5.0f, 3.0f, 1.0f}};
-    //Body bodyTwo = {glm::vec3{1.0f, -2.0f, 1.0f}, glm::vec3{1.0f, -4.0f, -1.0f}};
-    //Body bodyThree = {glm::vec3{-3.0f, 2.0f, -3.0f}, glm::vec3{3.0f, -2.0f, 2.0f}};
-
-    std::vector<Body> bodies = {bodyOne, bodyTwo, bodyThree};
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 1.0f, 1.0f});
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f});
+    // Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f});
+    SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
+    SphereRenderer *daPlanet = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
+    // SphereRenderer *daMoon = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
 
     glUseProgram(shader.shaderID);
 
@@ -130,56 +124,18 @@ int main()
         lastFrame = currentFrame;
 
         // processing any inputs on the stack to update view matrix
-        inputs.process_input(deltaTime, shader.shaderID, bodies); // updating general
+        inputs.process_input(deltaTime, shader.shaderID); // updating general
 
         glClearColor(0.01f, 0.01f, 0.02f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // TEMPORARY!!! physics code for proof of concept
-        float gravitationalConstant = 100.0f;
-        glm::vec3 force;
-        
-        if (!collision) // gravity stops when planets collide
-        {
-            for (int i = 0; i < bodies.size(); i++)
-            {
-                force = glm::vec3{0.0f};
-                for (int j = 0; j < bodies.size(); j++)
-                {
-                    if (i == j) continue;
+        // update planet position
+        planet->position = planet->orbit->next_position();
+        // moon->position = moon->orbit->next_position();
+        // std::cout << glm::length(planet->orbit->next_position()) << std::endl;
 
-                    // calculate relative position and distance
-                    glm::vec3 r = bodies[j].position - bodies[i].position;
-                    float rsq = glm::dot(r,r);
-
-                    // collision
-                    if (rsq < 1)
-                    {
-                        perished[0] = i;
-                        perished[1] = j;
-                        collision = true;
-                    }
-
-                    float forceMagnitude = gravitationalConstant/rsq; // calculate force magnitude
-                    force += glm::normalize(r)*forceMagnitude;
-                }
-
-                glm::vec3 acceleration = force;
-
-                // using eulers method to calculate new vel and position
-                bodies[i].velocity += acceleration*deltaTime;
-            }
-        }
-
-        for (int i = 0; i < bodies.size(); i++)
-        {
-            bodies[i].position = bodies[i].velocity*deltaTime;
-        }
-
-        // instancing is for nerds
-        if (perished[0] != 0 && perished[1] != 0){planetOne->draw(shader, bodies[0].position);}
-        if (perished[0] != 1 && perished[1] != 1){planetTwo->draw(shader, bodies[1].position);}
-        if (perished[0] != 2 && perished[1] != 2){planetThree->draw(shader, bodies[2].position);}
+        daSun->draw(shader, *sun);
+        daPlanet->draw(shader, *planet);
 
         glfwSwapBuffers(window);
         glfwPollEvents(); // remove events from stack

@@ -8,20 +8,19 @@
 class Orbit
 {
     public:
-        Orbit(float seed, Orbit &parent);
+        Orbit(double parentMass, double mass);
+        glm::vec3 next_position();
     
     private:
         // planet phys properties
         float seed;
-        double mass;
         double soi;
 
         // useful orbital elements
         double mean;
-        double period;
+        float epoch;
 
         // keplerian elements/orbital elements
         struct KeplerianElements elements;
-        std::vector<Orbit*> children;
         Orbit *parent;
 };

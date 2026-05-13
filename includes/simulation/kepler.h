@@ -10,5 +10,4 @@ struct KeplerianElements
     double inclination;
     double ascendingNode;
     double periapsis;
-    double meanAnomaly;
 };

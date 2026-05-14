@@ -1,8 +1,10 @@
-#include "../includes/inputs/inputs.h"
+#include "../includes/game/inputs.h"
 
-Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader)
+Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader)//, Player &player)
 {
     this->window = window;
+
+    //this->player = player;
 
     // initialising camera/mouse
     this->cameraPos = cameraPosition;
@@ -16,7 +18,7 @@ Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader)
 
 void Inputs::process_input(float dt, int shader)
 {
-    static int followCol = -1;
+    //static int followCol = -1;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
@@ -24,9 +26,9 @@ void Inputs::process_input(float dt, int shader)
     
     const float cameraSpeed = cfg::speed*dt; // adjust accordingly
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        cameraPos += cameraSpeed * cameraFront;  //  cameraSpeed * glm::vec3{0.0f, 0.0f, 1.0f};
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        cameraPos -= cameraSpeed * cameraFront;  //  cameraSpeed * glm::vec3{0.0f, 0.0f, 1.0f};
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -39,13 +41,17 @@ void Inputs::process_input(float dt, int shader)
     {
         cameraPos -= cameraSpeed*cameraUp;
     }
+
+    std::cout << cameraPos.x << " " << cameraPos.y << " " <<cameraPos.z << " " <<std::endl;
     
     // temporary
     
-    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 1000.0f); // possibly move out of loop
+    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 100000.0f); // possibly move out of loop
 
     int projLoc = glGetUniformLocation(shader, "projection");
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    //this->renderPos = glm::vec3(player->worldPos - cameraPos);
 
     
     this->view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);

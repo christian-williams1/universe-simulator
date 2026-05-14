@@ -1,12 +1,13 @@
 #pragma once
 
 #include "../config.h"
+#include "../includes/game/player.h"
 
 class Inputs
 {
     public:
         // constructor
-        Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader);
+        Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader);//, Player &player);
 
         // user interaction
         void process_mouse(double xoffset, double yoffset);
@@ -24,7 +25,7 @@ class Inputs
         float sensitivity;
 
         // camera vectors
-        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
+        glm::vec3 cameraPos = glm::dvec3(0.0f, 0.0f, 5.0f);
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
@@ -34,4 +35,8 @@ class Inputs
         float lastX;
         float lastY;
         float fov;
+
+        glm::vec3 renderPos;
+
+        Player *player;
 };

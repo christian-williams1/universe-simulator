@@ -14,13 +14,17 @@ class Body
 
         glm::vec3 next_position();
 
+        void orbit_traverse(glm::vec3 &position);
+
+        std::vector<Body *> children;
+
         ~Body();
 
         Orbit *orbit;
         glm::vec3 position;
     
     private:
-        std::vector<Body *> children;
+        //std::vector<Body *> children;
         Body *parent;
 
         double size;

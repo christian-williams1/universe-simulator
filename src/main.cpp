@@ -1,7 +1,7 @@
 #include <iostream>
 #include "../includes/config.h"
 #include "../includes/render/shader.h"
-#include "../includes/inputs/inputs.h"
+#include "../includes/game/inputs.h"
 #include "../includes/render/cube_sphere.h"
 #include "../includes/render/sphere_render.h"
 #include "../includes/render/cube_map.h"
@@ -106,8 +106,11 @@ int main()
     // creating planets
     //KeplerianElements sunElements = {0, 0, 0, 0, 0};
     Body *sun = new Body(nullptr, glm::vec3{1.0f, 1.0f, 1.0f}, {0, 0, 0, 0, 0});
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.1, 100.0, 0.0, 0.0, 80.0});
-    Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f}, {0.1, 30.0, 0.0, 0.0, 10.0});
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 1000.0, 0.0, 0.0, 0.0});
+    Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f}, {0.05, 1000.0, 0.0, 0.0, 0.0});
+
+    sun->children.push_back(planet);
+    planet->children.push_back(moon);
     SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
     SphereRenderer *daPlanet = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
     SphereRenderer *daMoon = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
@@ -131,8 +134,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // update planet position
-        planet->position = planet->next_position();
-        moon->position = moon->next_position();
+        glm::vec3 sunPos = glm::vec3{0.0f};
+        sun->orbit_traverse(sunPos);
         // std::cout << glm::length(planet->orbit->next_position()) << std::endl;
 
         daSun->draw(shader, *sun);

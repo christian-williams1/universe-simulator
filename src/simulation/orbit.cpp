@@ -6,11 +6,11 @@
 
 // values are currently hardcoded but needs to be not so hardcoded
 
-Orbit::Orbit(double parentMass, double mass)
+Orbit::Orbit(double parentMass, double mass, KeplerianElements elements)
 {
     // hardcoding properties at the moment
-    elements = {0.1, 100.0, 0.0, 0.0, 0.0};
-
+    //elements = {0.01, 100.0, 0.0, 0.0, 80.0};
+    this->elements = elements;
     // assigning parent mass properties
     if (parentMass != 0.0)
     {
@@ -24,12 +24,12 @@ Orbit::Orbit(double parentMass, double mass)
     this->epoch = glfwGetTime();
 }
 
-glm::vec3 Orbit::next_position()
+glm::vec3 Orbit::calculate_position()
 {
     // this function gets the position of the next point in its orbit relative to the parent body
     float currentTime = glfwGetTime();
 
-    double meanAnomaly = 100*mean * (currentTime - epoch);
+    double meanAnomaly = mean * (100*currentTime - epoch);
 
     double E = newtons_method(meanAnomaly, elements.eccentricity);
 
@@ -46,7 +46,7 @@ glm::vec3 Orbit::next_position()
 
     double x = r * (cos(N) * cos(v + w) - sin(N) * sin(v + w) * cos(i));
     double y = r * (sin(N) * cos(v + w) + cos(N) * sin(v + w) * cos(i));
-    double z = r * (sin(v + w) * sin(i));
+    double z = r * (sin(v + w) * sin(i + cfg::PI/4));
 
     return glm::vec3{x, y, z};
 }

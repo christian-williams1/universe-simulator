@@ -7,6 +7,7 @@
 #include "../includes/render/cube_map.h"
 #include "../includes/simulation/body.h"
 #include "../includes/simulation/orbit.h"
+#include "../includes/game/player.h"
 
 // void processInput(GLFWwindow *window, int shader);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -91,12 +92,8 @@ int main()
     Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
     Shader skyboxShader("../shaders/skybox_vert.vert", "../shaders/skybox_frag.frag");
 
-    // creating inputs class
-    Inputs inputs(window, glm::vec3(0.0f, 0.0f, -3.0f), shader.shaderID);
-    glblInputs = &inputs;
-
     // creating skybox
-    // SkyBox *skybox = new SkyBox();
+    //SkyBox *skybox = new SkyBox();
 
     glEnable(GL_DEPTH_TEST);
 
@@ -104,16 +101,22 @@ int main()
     CubeSphere cubeSphere(20);
 
     // creating planets
-    //KeplerianElements sunElements = {0, 0, 0, 0, 0};
-    Body *sun = new Body(nullptr, glm::vec3{1.0f, 1.0f, 1.0f}, {0, 0, 0, 0, 0});
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 1000.0, 0.0, 0.0, 0.0});
-    Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f}, {0.05, 1000.0, 0.0, 0.0, 0.0});
+    // KeplerianElements sunElements = {0, 0, 0, 0, 0};
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 1.0f, 1.0f}, {0, 0, 0, 0, 0}, 5.0f);
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 20000.0, 0.0, 0.0, 0.0}, 2000.0f);
+    Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f}, {0.05, 5.0, 0.0, 0.0, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
     planet->children.push_back(moon);
     SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
     SphereRenderer *daPlanet = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
     SphereRenderer *daMoon = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
+
+    // creating inputs class
+    Player *player = new Player(*sun);
+    Player *debug = new Player(*sun);
+    Inputs inputs(window, shader.shaderID, *player);
+    glblInputs = &inputs;
 
     glUseProgram(shader.shaderID);
 
@@ -128,19 +131,22 @@ int main()
         lastFrame = currentFrame;
 
         // processing any inputs on the stack to update view matrix
+        inputs.process_input(deltaTime, shader.shaderID);
         inputs.process_input(deltaTime, shader.shaderID); // updating general
 
         glClearColor(0.01f, 0.01f, 0.02f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        //skybox->draw(skyboxShader, inputs.projection, inputs.view);
+
         // update planet position
-        glm::vec3 sunPos = glm::vec3{0.0f};
+        glm::dvec3 sunPos = glm::dvec3{0.0f};
         sun->orbit_traverse(sunPos);
         // std::cout << glm::length(planet->orbit->next_position()) << std::endl;
 
-        daSun->draw(shader, *sun);
-        daPlanet->draw(shader, *planet);
-        daMoon->draw(shader, *moon);
+        daSun->draw(shader, *sun, player->worldPos);
+        daPlanet->draw(shader, *planet, player->worldPos);
+        daMoon->draw(shader, *moon, player->worldPos);
 
         glfwSwapBuffers(window);
         glfwPollEvents(); // remove events from stack

@@ -21,21 +21,38 @@ SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<uns
     this->idxCount = indices.size(); // storing index count for static geometry of cube sphere
 }
 
-void SphereRenderer::draw(const Shader &shader, Body &body)
+void SphereRenderer::draw(const Shader &shader, Body &body, glm::dvec3 worldPos)
 {
     glUseProgram(shader.shaderID);
     
     glBindVertexArray(VAO);
+
+    // passing colour
     glm::vec3 color = body.get_color();
     
     int vertexColorLoc = glGetUniformLocation(shader.shaderID, "col");
     glUniform3f(vertexColorLoc, color.x, color.y, color.z);
 
-    int modelLoc = glGetUniformLocation(shader.shaderID, "model");
+    // passing model matrix
     glm::mat4 model = glm::mat4{1.0f};
-    model = glm::translate(model, body.position);
+    glm::dvec3 relativePos = body.position - worldPos;
+    model = glm::translate(model, glm::vec3(relativePos));
     model = glm::scale(model, glm::vec3{body.get_size()});
+
+    int modelLoc = glGetUniformLocation(shader.shaderID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+    // passing inverse transformed normal map -> keep for later
+    //glm::mat3 transInvModel = glm::transpose(glm::inverse(model));
+
+    //int transInvModelLoc = glGetUniformLocation(shader.shaderID, "transposeInverseModel");
+    //glUniformMatrix3fv(transInvModelLoc, 1, GL_FALSE, glm::value_ptr(transInvModel));
+
+    // passing worldPos
+    int bodyPosLoc = glGetUniformLocation(shader.shaderID, "worldPos");
+
+    glm::vec3 bodyPosUniform = glm::vec3(body.position);
+    glUniform3fv(bodyPosLoc, 1, glm::value_ptr(bodyPosUniform));
 
     glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, 0);
 }

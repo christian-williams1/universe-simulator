@@ -9,7 +9,7 @@ class Orbit
 {
     public:
         Orbit(double parentMass, double mass, KeplerianElements elements);
-        glm::vec3 calculate_position();
+        glm::dvec3 calculate_position();
     
     private:
         // planet phys properties

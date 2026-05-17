@@ -28,7 +28,7 @@ namespace cfg {
     inline float winHeight = 700.0f;
 
     // player parameters
-    inline float speed = 50.0f;
+    inline float speed = 10.0f;
     inline float sensitivity = 0.1f;
     inline float fov = 45.0f;
 

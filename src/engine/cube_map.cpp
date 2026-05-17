@@ -6,9 +6,9 @@ SkyBox::SkyBox()
 {
     // defining texture locations
     std::vector<std::string> texLocations = {
-        "../media/FaceOne.png", "../media/FaceTwo.png",
+        "../media/FaceOne.png", "../media/FaceSix.png",
         "../media/FaceThree.png", "../media/FaceFour.png",
-        "../media/FaceFive.png", "../media/FaceSix.png"
+        "../media/FaceFive.png", "../media/FaceTwo.png"
     };
 
     // generating texture buf

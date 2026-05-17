@@ -8,7 +8,7 @@ class SphereRenderer
 {
     public:
         SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices);
-        void draw(const Shader &shader, Body &body);
+        void draw(const Shader &shader, Body &body, glm::dvec3 worldPos);
         ~SphereRenderer();
 
     private:

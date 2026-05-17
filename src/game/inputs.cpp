@@ -1,13 +1,12 @@
 #include "../includes/game/inputs.h"
 
-Inputs::Inputs(GLFWwindow *window, glm::vec3 cameraPosition, int shader)//, Player &player)
+Inputs::Inputs(GLFWwindow *window, int shader, Player &player)
 {
     this->window = window;
 
-    //this->player = player;
+    this->player = &player;
 
     // initialising camera/mouse
-    this->cameraPos = cameraPosition;
     this->lastX = cfg::winWidth/2.0f;
     this->lastY = cfg::winHeight/2.0f;
 
@@ -26,23 +25,23 @@ void Inputs::process_input(float dt, int shader)
     
     const float cameraSpeed = cfg::speed*dt; // adjust accordingly
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;  //  cameraSpeed * glm::vec3{0.0f, 0.0f, 1.0f};
+        player->worldPos += cameraSpeed * cameraFront;  //  cameraSpeed * glm::vec3{0.0f, 0.0f, 1.0f};
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;  //  cameraSpeed * glm::vec3{0.0f, 0.0f, 1.0f};
+        player->worldPos -= cameraSpeed * cameraFront;  //  cameraSpeed * glm::vec3{0.0f, 0.0f, 1.0f};
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        player->worldPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        player->worldPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        cameraPos += cameraSpeed*cameraUp;
+        player->worldPos += cameraSpeed*cameraUp;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        cameraPos -= cameraSpeed*cameraUp;
+        player->worldPos -= cameraSpeed*cameraUp;
     }
 
-    std::cout << cameraPos.x << " " << cameraPos.y << " " <<cameraPos.z << " " <<std::endl;
+    //std::cout << player->worldPos.x << " " << player->worldPos.y << " " << player->worldPos.z << " " <<std::endl;
     
     // temporary
     
@@ -54,7 +53,7 @@ void Inputs::process_input(float dt, int shader)
     //this->renderPos = glm::vec3(player->worldPos - cameraPos);
 
     
-    this->view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    this->view = glm::lookAt(glm::vec3{0.0f}, cameraFront, cameraUp); //glm::vec3{0.0f}+
 
     int viewLoc = glGetUniformLocation(shader, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));

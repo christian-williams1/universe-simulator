@@ -27,7 +27,7 @@ Orbit::Orbit(double parentMass, double mass, KeplerianElements elements)
     this->epoch = glfwGetTime();
 }
 
-glm::vec3 Orbit::calculate_position()
+glm::dvec3 Orbit::calculate_position()
 {
     // this function gets the position of the next point in its orbit relative to the parent body
     float currentTime = glfwGetTime();
@@ -51,5 +51,5 @@ glm::vec3 Orbit::calculate_position()
     double y = r * (sin(N) * cos(v + w) + cos(N) * sin(v + w) * cos(i));
     double z = r * (sin(v + w) * sin(i));
 
-    return glm::vec3{x, y, z};
+    return glm::dvec3{x, y, z};
 }

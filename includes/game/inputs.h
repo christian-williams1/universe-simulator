@@ -11,7 +11,7 @@ class Inputs
 
         // user interaction
         void process_mouse(double xoffset, double yoffset);
-        void process_input(float dt, int shader);
+        void process_input(float dt);
 
         glm::mat4 projection;
         

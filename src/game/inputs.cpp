@@ -13,9 +13,10 @@ Inputs::Inputs(GLFWwindow *window, int shader, Player &player)
     // setting perspective
 
     this->projection = glm::mat4(1.0f);
+    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 100000.0f);
 }
 
-void Inputs::process_input(float dt, int shader)
+void Inputs::process_input(float dt)
 {
     //static int followCol = -1;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -40,23 +41,8 @@ void Inputs::process_input(float dt, int shader)
     {
         player->worldPos -= cameraSpeed*cameraUp;
     }
-
-    //std::cout << player->worldPos.x << " " << player->worldPos.y << " " << player->worldPos.z << " " <<std::endl;
     
-    // temporary
-    
-    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 100000.0f); // possibly move out of loop
-
-    int projLoc = glGetUniformLocation(shader, "projection");
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-    //this->renderPos = glm::vec3(player->worldPos - cameraPos);
-
-    
-    this->view = glm::lookAt(glm::vec3{0.0f}, cameraFront, cameraUp); //glm::vec3{0.0f}+
-
-    int viewLoc = glGetUniformLocation(shader, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    this->view = glm::lookAt(glm::vec3{0.0f}, cameraFront, cameraUp);
 }
 
 

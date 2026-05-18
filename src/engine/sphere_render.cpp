@@ -1,7 +1,15 @@
 #include "../includes/render/sphere_render.h"
 #include "../includes/simulation/body.h"
 
-SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices)
+SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices, Shader &shader)
+{
+    initialise_container(vertices, indices);
+
+    this->idxCount = indices.size(); // storing index count for static geometry of cube sphere
+    this->shader = &shader;
+}
+
+void SphereRenderer::initialise_container(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices)
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -17,20 +25,18 @@ SphereRenderer::SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<uns
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-
-    this->idxCount = indices.size(); // storing index count for static geometry of cube sphere
 }
 
-void SphereRenderer::draw(const Shader &shader, Body &body, glm::dvec3 worldPos)
+void SphereRenderer::draw(Body &body, glm::dvec3 worldPos)
 {
-    glUseProgram(shader.shaderID);
+    glUseProgram(shader->shaderID);
     
     glBindVertexArray(VAO);
 
     // passing colour
     glm::vec3 color = body.get_color();
     
-    int vertexColorLoc = glGetUniformLocation(shader.shaderID, "col");
+    int vertexColorLoc = glGetUniformLocation(shader->shaderID, "col");
     glUniform3f(vertexColorLoc, color.x, color.y, color.z);
 
     // passing model matrix
@@ -39,7 +45,7 @@ void SphereRenderer::draw(const Shader &shader, Body &body, glm::dvec3 worldPos)
     model = glm::translate(model, glm::vec3(relativePos));
     model = glm::scale(model, glm::vec3{body.get_size()});
 
-    int modelLoc = glGetUniformLocation(shader.shaderID, "model");
+    int modelLoc = glGetUniformLocation(shader->shaderID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     // passing inverse transformed normal map -> keep for later
@@ -49,7 +55,7 @@ void SphereRenderer::draw(const Shader &shader, Body &body, glm::dvec3 worldPos)
     //glUniformMatrix3fv(transInvModelLoc, 1, GL_FALSE, glm::value_ptr(transInvModel));
 
     // passing worldPos
-    int bodyPosLoc = glGetUniformLocation(shader.shaderID, "worldPos");
+    int bodyPosLoc = glGetUniformLocation(shader->shaderID, "worldPos");
 
     glm::vec3 bodyPosUniform = glm::vec3(body.position);
     glUniform3fv(bodyPosLoc, 1, glm::value_ptr(bodyPosUniform));

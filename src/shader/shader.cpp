@@ -78,3 +78,15 @@ unsigned int Shader::make_shader_module(const std::string &filePath, unsigned in
 
     return shader_module;
 }
+
+void Shader::set_int(std::string uniform, int value)
+{
+    int loc = glGetUniformLocation(shaderID, uniform.c_str());
+    glUniform1i(loc, value);
+}
+
+void Shader::set_float(std::string uniform, float value)
+{
+    int loc = glGetUniformLocation(shaderID, uniform.c_str());
+    glUniform1f(loc, value);
+}

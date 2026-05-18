@@ -7,11 +7,13 @@
 class SphereRenderer
 {
     public:
-        SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices);
-        void draw(const Shader &shader, Body &body, glm::dvec3 worldPos);
+        SphereRenderer(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices, Shader &shader);
+        void draw(Body &body, glm::dvec3 worldPos);
         ~SphereRenderer();
 
-    private:
+    protected:
+        void initialise_container(std::vector<glm::vec3> &vertices, std::vector<unsigned int> &indices);
         unsigned int VBO, VAO, EBO;
+        Shader *shader;
         int idxCount;
 };

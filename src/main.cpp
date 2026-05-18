@@ -8,6 +8,7 @@
 #include "../includes/simulation/body.h"
 #include "../includes/simulation/orbit.h"
 #include "../includes/game/player.h"
+#include "../includes/render/bloom.h"
 
 // void processInput(GLFWwindow *window, int shader);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -21,11 +22,6 @@ Inputs *glblInputs = nullptr;
 bool firstMouse = true;
 float lastX = cfg::winWidth / 2.0f;
 float lastY = cfg::winHeight / 2.0f;
-
-// struct Body {
-//     glm::vec3 position;
-//     glm::vec3 velocity;
-//};
 
 int main()
 {
@@ -89,11 +85,14 @@ int main()
     glViewport(0, 0, cfg::winWidth, cfg::winHeight);
 
     // compiling shaders
-    Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
-    Shader skyboxShader("../shaders/skybox_vert.vert", "../shaders/skybox_frag.frag");
+    Shader planetShader("../shaders/vertex.vert", "../shaders/planet.frag");
+    Shader sunShader("../shaders/vertex.vert", "../shaders/sun.frag");
 
-    // creating skybox
-    //SkyBox *skybox = new SkyBox();
+    Shader ppBloom("../shaders/bloom.vert", "../shaders/bloom.frag"); // swapped bloom and blur add to video
+    Shader ppBlur("../shaders/bloom.vert", "../shaders/blur.frag");
+
+    // idk
+    Shader shaders[2] = {planetShader, sunShader};
 
     glEnable(GL_DEPTH_TEST);
 
@@ -101,27 +100,31 @@ int main()
     CubeSphere cubeSphere(20);
 
     // creating planets
-    // KeplerianElements sunElements = {0, 0, 0, 0, 0};
-    Body *sun = new Body(nullptr, glm::vec3{1.0f, 1.0f, 1.0f}, {0, 0, 0, 0, 0}, 5.0f);
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 20000.0, 0.0, 0.0, 0.0}, 2000.0f);
-    Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f}, {0.05, 5.0, 0.0, 0.0, 0.0}, 0.9f);
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, 5.0f);
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 400.0, 0.0, 0.0, 0.0}, 30.0f);
+    Body *moon = new Body(planet, glm::vec3{1.0f, 0.5f, 0.25f}, {0.05, 10.0, 0.0, 0.0, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
     planet->children.push_back(moon);
-    SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
-    SphereRenderer *daPlanet = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
-    SphereRenderer *daMoon = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices);
+    SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, sunShader);
+    SphereRenderer *daPlanet = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
+    SphereRenderer *daMoon = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
 
     // creating inputs class
     Player *player = new Player(*sun);
     Player *debug = new Player(*sun);
-    Inputs inputs(window, shader.shaderID, *player);
+    Inputs inputs(window, planetShader.shaderID, *player);
     glblInputs = &inputs;
 
-    glUseProgram(shader.shaderID);
+    // creating bloom effect class
+    Bloom *bloom = new Bloom(ppBloom, ppBlur);
 
-    int perished[2] = {4, 4};
-    bool collision = true;
+    glUseProgram(planetShader.shaderID);
+
+    // enable face culling
+    // glEnable(GL_CULL_FACE);  
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CCW);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -131,22 +134,47 @@ int main()
         lastFrame = currentFrame;
 
         // processing any inputs on the stack to update view matrix
-        inputs.process_input(deltaTime, shader.shaderID);
-        inputs.process_input(deltaTime, shader.shaderID); // updating general
+        inputs.process_input(deltaTime);
 
-        glClearColor(0.01f, 0.01f, 0.02f, 1.0f);
+        // clearing default buffer
+        glClearColor(0.00f, 0.00f, 0.00f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //skybox->draw(skyboxShader, inputs.projection, inputs.view);
+        // rendering to FBO
+        glBindFramebuffer(GL_FRAMEBUFFER, bloom->FBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // send updated inputs into respective shader programs
+        for (auto &shader : shaders)
+        {
+            glUseProgram(shader.shaderID); // remove
+
+            int projLoc = glGetUniformLocation(shader.shaderID, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
+
+            int viewLoc = glGetUniformLocation(shader.shaderID, "view");
+            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(inputs.view));
+        }
 
         // update planet position
         glm::dvec3 sunPos = glm::dvec3{0.0f};
         sun->orbit_traverse(sunPos);
-        // std::cout << glm::length(planet->orbit->next_position()) << std::endl;
 
-        daSun->draw(shader, *sun, player->worldPos);
-        daPlanet->draw(shader, *planet, player->worldPos);
-        daMoon->draw(shader, *moon, player->worldPos);
+        // rendering light container (sun)
+        glUseProgram(sunShader.shaderID);
+        daSun->draw(*sun, player->worldPos);
+
+        // rendering containers (planets)
+        glUseProgram(planetShader.shaderID);
+        daPlanet->draw(*planet, player->worldPos);
+        daMoon->draw(*moon, player->worldPos);
+
+        // final rendering to quad
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glUseProgram(ppBlur.shaderID);
+        bloom->draw_quad();
 
         glfwSwapBuffers(window);
         glfwPollEvents(); // remove events from stack

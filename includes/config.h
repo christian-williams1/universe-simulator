@@ -28,11 +28,21 @@ namespace cfg {
     inline float winHeight = 700.0f;
 
     // player parameters
-    inline float speed = 1000.0f;
+    inline float speed = 100.0f;
     inline float sensitivity = 0.1f;
     inline float fov = 45.0f;
 
     // mathematical constants
     inline const double PI = 3.14159265359;
-    inline const double G = 100.0f;
+    inline const double G = 1.0f;
+    inline double timeSpeed = 1.0f;
 }
+
+// defining global simulation state
+struct SimState {
+    double timeScale = 0.0;
+    double epoch = 0.0;
+    double simTime = 0.0;
+};
+
+extern SimState glblState;

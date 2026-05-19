@@ -10,19 +10,11 @@ in vec3 lightDir;
 void main()
 {
     float diff = max(dot(normal, lightDir), 0.0f);
-    vec3 diffuse = diff*vec3(1.0f, 1.0f, 1.0f);
-    vec4 lighting = vec4(diffuse+0.001f, 1.0f)*vec4(color, 1.0f); //vec4(lightDir * 0.5 + 0.5, 1.0);
+    vec3 diffuse = diff*vec3(1.0f, 0.9f, 0.3f);
+    vec4 lighting = vec4(diffuse, 1.0f)*vec4(color, 1.0f);
 
     fragCol = lighting;
 
-    float brightness = dot(fragCol.xyz, vec3(0.2126, 0.7152, 0.0722));
-    
-    if (brightness > 1.0)
-    {
-        brightColor = fragCol;
-    }
-    else
-    {
-        brightColor = vec4(0.0f);
-    }
+    brightColor = vec4(0.0f);
+
 }

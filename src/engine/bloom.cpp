@@ -8,16 +8,15 @@ Bloom::Bloom(Shader &bloomShader, Shader &blurShader)
 
     // generating 2D Quad
     const std::vector<float> vertices = {
-        -1.0f, -1.0f, 0.0f,  0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f, 0.0f,  0.0f, 1.0f, // top left
-         1.0f, -1.0f, 0.0f,  1.0f, 0.0f, // bottom right
-         1.0f,  1.0f, 0.0f,  1.0f, 1.0f // top right
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom left
+        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // top left
+        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        1.0f, 1.0f, 0.0f, 1.0f, 1.0f    // top right
     };
 
     const std::vector<unsigned int> indices = {
         0, 1, 2,
-        1, 2, 3
-    };
+        1, 2, 3};
 
     // generating 2D quad
     glGenVertexArrays(1, &VAO);
@@ -35,7 +34,7 @@ Bloom::Bloom(Shader &bloomShader, Shader &blurShader)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3*sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     // generating FBO for postprocessing bloom effect
@@ -49,15 +48,13 @@ Bloom::Bloom(Shader &bloomShader, Shader &blurShader)
     {
         glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
         glTexImage2D(
-            GL_TEXTURE_2D, 0, GL_RGBA16F, (int)cfg::winWidth, (int)cfg::winHeight, 0, GL_RGBA, GL_FLOAT, NULL
-        );
+            GL_TEXTURE_2D, 0, GL_RGBA16F, (int)cfg::winWidth, (int)cfg::winHeight, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0
-        );
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         {
@@ -110,16 +107,15 @@ void Bloom::draw_quad()
 
     for (unsigned int i = 0; i < amount; i++)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]); 
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
 
         blurShader->set_int("fboTex", 0);
         blurShader->set_int("horizontal", horizontal);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(
-            GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongBuffer[!horizontal]
-        ); 
-        
+            GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongBuffer[!horizontal]);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -146,5 +142,5 @@ void Bloom::draw_quad()
     glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

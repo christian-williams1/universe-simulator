@@ -23,16 +23,14 @@ Orbit::Orbit(double parentMass, double mass, KeplerianElements elements)
         // calculating sphere of influence
         this->soi = elements.semiMajorAxis * pow(parentMass / mass, 0.4); // a*(M/m)^2/5
     }
-
-    this->epoch = glfwGetTime();
 }
 
 glm::dvec3 Orbit::calculate_position()
 {
     // this function gets the position of the next point in its orbit relative to the parent body
-    float currentTime = glfwGetTime();
+    //float currentTime = glfwGetTime();
 
-    double meanAnomaly = mean * (10*currentTime - epoch);
+    double meanAnomaly = mean * glblState.simTime;
 
     double E = newtons_method(meanAnomaly, elements.eccentricity);
 

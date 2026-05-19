@@ -18,7 +18,6 @@ class Orbit
 
         // useful orbital elements
         double mean;
-        float epoch;
 
         // keplerian elements/orbital elements
         struct KeplerianElements elements;

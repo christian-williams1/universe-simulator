@@ -13,7 +13,7 @@ Inputs::Inputs(GLFWwindow *window, int shader, Player &player)
     // setting perspective
 
     this->projection = glm::mat4(1.0f);
-    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 100000.0f);
+    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 10000.0f);
 }
 
 void Inputs::process_input(float dt)

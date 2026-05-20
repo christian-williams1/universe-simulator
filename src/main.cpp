@@ -11,6 +11,10 @@
 #include "../includes/render/bloom.h"
 #include "../includes/render/point_sphere.h"
 
+// debug
+#include "../debug/debug_camera.h"
+#include "../debug/camera_mesh.h"
+
 // void processInput(GLFWwindow *window, int shader);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
@@ -26,8 +30,13 @@ float lastY = cfg::winHeight / 2.0f;
 
 SimState glblState = {0.0, 1.0, 0.0};
 
+// debugging states
+bool debugMode = true;
+DebugCamera *glblDebug = nullptr;
+
 int main()
 {
+    // Setting up window
     if (!glfwInit())
     {
         std::cout << "Unable to open window" << std::endl;
@@ -61,7 +70,7 @@ int main()
 
     // setting win hints
     glfwWindowHint(GLFW_REFRESH_RATE, 60);
-    //glfwWindowHint(GLFW_SAMPLES, 32);
+    // glfwWindowHint(GLFW_SAMPLES, 32);
     cfg::winWidth = static_cast<float>(mode->width);
     cfg::winHeight = static_cast<float>(mode->height);
 
@@ -98,31 +107,34 @@ int main()
     Shader ppBloom("../shaders/bloom.vert", "../shaders/bloom.frag"); // swapped bloom and blur add to video
     Shader ppBlur("../shaders/bloom.vert", "../shaders/blur.frag");
 
+    // debug camera
+    Shader cameraShader("../shaders/camera.vert", "../shaders/camera.frag");
+
     // temporary starfield
     Shader starfieldShader("../shaders/starfield.vert", "../shaders/starfield.frag");
     StarField *starfield = new StarField(starfieldShader);
 
     // idk
-    Shader shaders[3] = {planetShader, sunShader, starfieldShader};
+    Shader shaders[4] = {planetShader, sunShader, starfieldShader, cameraShader};
 
     // enabling some random shi idk anymore kms
     glPointSize(1.5f);
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_MULTISAMPLE);  
+    // glEnable(GL_MULTISAMPLE);
 
     // generating sphere
     CubeSphere cubeSphere(20);
 
     // creating planets
-    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, 5.0f);
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 80.0, 0.0, 0.0, 0.0}, 3.0f);
-    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, 200.0, 0.01, 0.01, 1.50}, 3.0f);
-    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, 400.0, 0.09, 0.01, 0.90}, 3.0f);
-    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, 10.0, 0.01, 0.1, 0.0}, 0.9f);
-    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, 40.0, 0.02, 0.2, 0.0}, 0.9f);
-    Body *moonTh = new Body(planet, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, 100.0, 0.03, 0.0, 0.0}, 0.9f);
-    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, 50.0, 0.04, 0.1, 0.0}, 0.9f);
-    //Body *moonFi = new Body(planet, glm::vec3{0.8f, 0.8f, 0.8f}, {0.05, 10.0, 0.05, 0.1, 0.0}, 0.9f);
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, 100.0f);
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 1080.0, 0.0, 0.0, 0.0}, 50.0f);
+    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, 4000.0, 0.01, 0.01, 1.50}, 70.0f);
+    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, 8000.0, 0.09, 0.01, 0.90}, 80.0f);
+    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, 100.0, 0.01, 0.1, 0.0}, 10.9f);
+    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, 250.0, 0.02, 0.2, 0.0}, 10.9f);
+    Body *moonTh = new Body(planet, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, 150.0, 0.03, 0.0, 0.0}, 5.9f);
+    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, 600.0, 0.04, 0.1, 0.0}, 1.9f);
+    // Body *moonFi = new Body(planet, glm::vec3{0.8f, 0.8f, 0.8f}, {0.05, 10.0, 0.05, 0.1, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
     sun->children.push_back(planetT);
@@ -130,10 +142,10 @@ int main()
     planet->children.push_back(moon);
     planet->children.push_back(moonT);
     planetT->children.push_back(moonTh);
-    //planetT->children.push_back(moonF);
-    //planetT->children.push_back(moonFi);
+    // planetT->children.push_back(moonF);
+    // planetT->children.push_back(moonFi);
 
-    std::vector<Body *> bodies = {planet, planetT, planetTh, moon, moonT, moonTh};//, moonF, moonFi};
+    std::vector<Body *> bodies = {planet, planetT, planetTh, moon, moonT, moonTh}; //, moonF, moonFi};
     std::vector<SphereRenderer *> sphereRender;
 
     SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, sunShader);
@@ -143,14 +155,16 @@ int main()
         SphereRenderer *obj = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
         sphereRender.push_back(obj);
     }
-    // SphereRenderer *daPlanet = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
-    // SphereRenderer *daMoon = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
 
     // creating inputs class
     Player *player = new Player(*sun);
-    Player *debug = new Player(*sun);
     Inputs inputs(window, planetShader.shaderID, *player);
     glblInputs = &inputs;
+
+    // creating debug camera
+    DebugCamera *debug = new DebugCamera(window);
+    glblDebug = debug;
+    CameraMesh *cameraMesh = new CameraMesh(cameraShader);
 
     // creating bloom effect class
     Bloom *bloom = new Bloom(ppBloom, ppBlur);
@@ -170,10 +184,14 @@ int main()
         lastFrame = currentFrame;
 
         // setting global simulation time
-        glblState.simTime += glblState.timeScale*deltaTime;
+        glblState.simTime += glblState.timeScale * deltaTime;
 
         // processing any inputs on the stack to update view matrix
         inputs.process_input(deltaTime);
+        if (debugMode)
+        {
+            debug->update_camera(deltaTime);
+        }
 
         // clearing default buffer
         glClearColor(0.00f, 0.00f, 0.00f, 1.0f);
@@ -184,15 +202,33 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // send updated inputs into respective shader programs
-        for (auto &shader : shaders)
+        if (!debugMode)
         {
-            glUseProgram(shader.shaderID); // remove
+            for (auto &shader : shaders)
+            {
+                glUseProgram(shader.shaderID); // remove
 
-            int projLoc = glGetUniformLocation(shader.shaderID, "projection");
-            glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
+                int projLoc = glGetUniformLocation(shader.shaderID, "projection");
+                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
 
-            int viewLoc = glGetUniformLocation(shader.shaderID, "view");
-            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(inputs.view));
+                int viewLoc = glGetUniformLocation(shader.shaderID, "view");
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(inputs.view));
+            }
+        }
+
+        if (debugMode)
+        {
+            for (auto &shader : shaders)
+            {
+                glUseProgram(shader.shaderID); // remove
+
+                int projLoc = glGetUniformLocation(shader.shaderID, "projection");
+                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
+
+                int viewLoc = glGetUniformLocation(shader.shaderID, "view");
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(debug->view));
+            }
+            cameraMesh->draw(inputs.projection, inputs.view, debug->projection, debug->view);
         }
 
         // drawing temporary starfield
@@ -248,4 +284,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
     lastY = ypos;
 
     glblInputs->process_mouse(xoffset, yoffset);
+
+    // if (debugMode)
+    // {
+    //     glblDebug->process_mouse(xoffset, yoffset);
+    // }
 }

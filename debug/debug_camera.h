@@ -1,27 +1,21 @@
 #pragma once
 
-#include "../config.h"
-#include "player.h"
+#include "../includes/config.h"
 
-class Inputs
+class DebugCamera
 {
     public:
-        // constructor
-        Inputs(GLFWwindow *window, int shader, Player &player);
-
-        // user interaction
+        DebugCamera(GLFWwindow *window);
+        void update_camera(float dt);
         void process_mouse(double xoffset, double yoffset);
-        void process_input(float dt);
 
         glm::mat4 projection;
-        
         glm::mat4 view;
 
     private:
         GLFWwindow *window;
 
-        // camera vectors
-        //glm::dvec3 cameraPos = glm::dvec3(0.0f, 0.0f, 5.0f);
+        glm::vec3 cameraPos = glm::vec3{0.0f, 10.0f, 10.0f};
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
@@ -31,6 +25,4 @@ class Inputs
         float lastX;
         float lastY;
         float fov;
-
-        Player *player;
 };

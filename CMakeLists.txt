@@ -5,11 +5,12 @@ cmake_policy(SET CMP0072 NEW)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 
-file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c" "debug/*.cpp")
 add_executable(universe ${SOURCES})
 
 target_include_directories(universe PRIVATE 
     ${CMAKE_SOURCE_DIR}/dependencies
-    ${CMAKE_SOURCE_DIR}/includes)
+    ${CMAKE_SOURCE_DIR}/includes
+    ${CMAKE_SOURCE_DIR}/debug)
 
 target_link_libraries(universe glfw3 OpenGL::GL)

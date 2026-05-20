@@ -12,7 +12,7 @@ class Player
 {
     public:
         Player(Body &body);
-        void switch_body();
+        void check_soi();
 
         glm::dvec3 worldPos;
     private:

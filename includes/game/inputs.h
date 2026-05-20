@@ -33,4 +33,6 @@ class Inputs
         float fov;
 
         Player *player;
+
+        bool keyDown;
 };

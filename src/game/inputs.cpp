@@ -11,9 +11,10 @@ Inputs::Inputs(GLFWwindow *window, int shader, Player &player)
     this->lastY = cfg::winHeight/2.0f;
 
     // setting perspective
-
     this->projection = glm::mat4(1.0f);
     this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth/cfg::winHeight, 0.1f, 10000.0f);
+
+    this->keyDown = false;
 }
 
 void Inputs::process_input(float dt)
@@ -41,8 +42,29 @@ void Inputs::process_input(float dt)
     {
         player->worldPos -= cameraSpeed*cameraUp;
     }
-    
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && !keyDown)
+    {
+        keyDown = true;
+        glblState.timeScale *= 2;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !keyDown)
+    {
+        keyDown = true;
+        if (glblState.timeScale > 1) glblState.timeScale /= 2;
+    }
+    else if (
+        glfwGetKey(window, GLFW_KEY_Q) != GLFW_PRESS &&
+        glfwGetKey(window, GLFW_KEY_E) != GLFW_PRESS &&
+        keyDown)
+    {
+        keyDown = false;
+    }
     this->view = glm::lookAt(glm::vec3{0.0f}, cameraFront, cameraUp);
+
+    if (player->worldPos.x > 200)
+    {
+        this->view = glm::rotate(this->view, glm::radians(90.0f), glm::vec3(-1, 0, 0));
+    }
 }
 
 

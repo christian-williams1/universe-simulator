@@ -7,7 +7,7 @@ Player::Player(Body &body)
     this->worldPos = glm::dvec3{0.0f, 10.0f, 0.0f};
 }
 
-void Player::switch_body()
+void Player::check_soi()
 {
-    //if (body)
+    
 }

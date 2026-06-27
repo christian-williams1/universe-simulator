@@ -61,10 +61,10 @@ void Inputs::process_input(float dt)
     }
     this->view = glm::lookAt(glm::vec3{0.0f}, cameraFront, cameraUp);
 
-    if (player->worldPos.x > 200)
-    {
-        this->view = glm::rotate(this->view, glm::radians(90.0f), glm::vec3(-1, 0, 0));
-    }
+    // if (player->worldPos.x > 200)
+    // {
+    //     this->view = glm::rotate(this->view, glm::radians(90.0f), glm::vec3(-1, 0, 0));
+    // }
 }
 
 

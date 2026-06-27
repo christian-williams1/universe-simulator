@@ -8,15 +8,17 @@
 class Body
 {
     public:
-        Body(Body *parent, glm::vec3 color, KeplerianElements elements, float size);
+        Body(Body *parent, glm::vec3 color, KeplerianElements elements, float size, double mass);
         double get_size();
         glm::vec3 get_color();
+        void set_colour(glm::vec3 colour);
 
         glm::vec3 next_position();
 
         void orbit_traverse(glm::dvec3 &position);
 
         std::vector<Body *> children;
+        Body *parent;
 
         ~Body();
 
@@ -25,7 +27,6 @@ class Body
     
     private:
         //std::vector<Body *> children;
-        Body *parent;
 
         double size;
         double mass;

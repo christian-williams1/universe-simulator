@@ -27,7 +27,7 @@ void SphereRenderer::initialise_container(std::vector<glm::vec3> &vertices, std:
     glEnableVertexAttribArray(0);
 }
 
-void SphereRenderer::draw(Body &body, glm::dvec3 worldPos)
+void SphereRenderer::draw(Body &body, glm::dvec3 worldPos, bool scaleSpace)
 {
     glUseProgram(shader->shaderID);
     
@@ -42,8 +42,16 @@ void SphereRenderer::draw(Body &body, glm::dvec3 worldPos)
     // passing model matrix
     glm::mat4 model = glm::mat4{1.0f};
     glm::dvec3 relativePos = body.position - worldPos;
+    glm::vec3 bodySize = glm::vec3{(float)body.get_size()};
+    // if scale space render scale both relative pos and body size
+    if (scaleSpace)
+    {
+        relativePos = glm::vec3{relativePos}*scaleFactor;
+        bodySize = bodySize*scaleFactor;
+    }
+    
     model = glm::translate(model, glm::vec3(relativePos));
-    model = glm::scale(model, glm::vec3{body.get_size()});
+    model = glm::scale(model, bodySize);
 
     int modelLoc = glGetUniformLocation(shader->shaderID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

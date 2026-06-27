@@ -8,6 +8,7 @@ class DebugCamera
         DebugCamera(GLFWwindow *window);
         void update_camera(float dt);
         void process_mouse(double xoffset, double yoffset);
+        void process_scroll(double yoffset);
 
         glm::mat4 projection;
         glm::mat4 view;
@@ -25,4 +26,7 @@ class DebugCamera
         float lastX;
         float lastY;
         float fov;
+
+        // scrolling orbit
+        float orbitRadius = 10.0f;
 };

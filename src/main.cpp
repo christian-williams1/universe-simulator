@@ -17,6 +17,7 @@
 
 // void processInput(GLFWwindow *window, int shader);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // keeping track of time betweeen each frame
 float deltaTime = 0.0f;
@@ -85,7 +86,10 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+
+    // callbacks
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -98,7 +102,7 @@ int main()
     glViewport(0, 0, cfg::winWidth, cfg::winHeight);
 
     // defining simulation state default parameters
-    glblState.timeScale = 1.0f;
+    glblState.timeScale = 0.0f;
 
     // compiling shaders
     Shader planetShader("../shaders/vertex.vert", "../shaders/planet.frag");
@@ -126,32 +130,33 @@ int main()
     CubeSphere cubeSphere(20);
 
     // creating planets
-    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, 100.0f);
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 1080.0, 0.0, 0.0, 0.0}, 50.0f);
-    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, 4000.0, 0.01, 0.01, 1.50}, 70.0f);
-    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, 8000.0, 0.09, 0.01, 0.90}, 80.0f);
-    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, 100.0, 0.01, 0.1, 0.0}, 10.9f);
-    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, 250.0, 0.02, 0.2, 0.0}, 10.9f);
-    Body *moonTh = new Body(planet, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, 150.0, 0.03, 0.0, 0.0}, 5.9f);
-    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, 600.0, 0.04, 0.1, 0.0}, 1.9f);
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, 100.0f, 10000.0f);
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 1080.0, 0.0, 0.0, 0.0}, 50.0f, 500.0f);
+    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, 4000.0, 0.01, 0.01, 1.50}, 70.0f, 700.0f);
+    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, 8000.0, 0.09, 0.01, 0.90}, 80.0f, 800.0f);
+    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, 300.0, 0.01, 0.1, 0.0}, 10.9f, 200.0f);
+    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, 450.0, 0.02, 0.2, 0.0}, 10.9f, 200.0f);
+    Body *moonTh = new Body(planetT, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, 450.0, 0.03, 0.0, 0.0}, 5.9f, 120.6f);
+    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, 600.0, 0.04, 0.1, 0.0}, 1.9f, 50.2f);
     // Body *moonFi = new Body(planet, glm::vec3{0.8f, 0.8f, 0.8f}, {0.05, 10.0, 0.05, 0.1, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
     sun->children.push_back(planetT);
     sun->children.push_back(planetTh);
-    planet->children.push_back(moon);
+    //planet->children.push_back(moon);
     planet->children.push_back(moonT);
     planetT->children.push_back(moonTh);
     // planetT->children.push_back(moonF);
     // planetT->children.push_back(moonFi);
 
-    std::vector<Body *> bodies = {planet, planetT, planetTh, moon, moonT, moonTh}; //, moonF, moonFi};
+    std::vector<Body *> bodies = {planet, planetT, planetTh, moonT, moonTh}; //moon, moonF, moonFi};
     std::vector<SphereRenderer *> sphereRender;
 
     SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, sunShader);
 
     for (auto &body : bodies)
     {
+        body->set_colour(glm::vec3{1.0f, 0.0f, 0.0f});
         SphereRenderer *obj = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
         sphereRender.push_back(obj);
     }
@@ -240,16 +245,38 @@ int main()
         glm::dvec3 sunPos = glm::dvec3{0.0f};
         sun->orbit_traverse(sunPos);
 
+        // checking the players SOI and within critical radius
+        player->check_critical_radius();
+        player->check_soi();
+
+        // rendering planets/sun
+        bool scaleSpace = true;
+        bool localSpace = player->get_local_space();
         // rendering light container (sun)
         glUseProgram(sunShader.shaderID);
-        daSun->draw(*sun, player->worldPos);
+        if (player->get_body() == sun && localSpace)
+        {
+            daSun->draw(*sun, player->worldPos, !scaleSpace);
+        }
+        else
+        {
+            daSun->draw(*sun, player->worldPos, scaleSpace);
+        }
 
         // rendering containers (planets)
         glUseProgram(planetShader.shaderID);
 
+        // drawing scale space
         for (int i = 0; i < bodies.size(); i++)
         {
-            sphereRender[i]->draw(*bodies[i], player->worldPos);
+            if (player->get_body() == bodies[i] && localSpace)
+            {
+                sphereRender[i]->draw(*bodies[i], player->worldPos, !scaleSpace);
+            }
+            else
+            {
+                sphereRender[i]->draw(*bodies[i], player->worldPos, scaleSpace);
+            }
         }
 
         // final rendering to quad
@@ -283,10 +310,24 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    glblInputs->process_mouse(xoffset, yoffset);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
+    {
+        glblInputs->process_mouse(xoffset, yoffset);
+    }
+    
 
-    // if (debugMode)
-    // {
-    //     glblDebug->process_mouse(xoffset, yoffset);
-    // }
+    if (debugMode)
+    {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        {
+            glblDebug->process_mouse(xoffset, yoffset);
+        } 
+    }
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (!glblDebug) return;
+
+    glblDebug->process_scroll(yoffset);
 }

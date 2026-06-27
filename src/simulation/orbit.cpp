@@ -9,7 +9,7 @@
 Orbit::Orbit(double parentMass, double mass, KeplerianElements elements)
 {
     // hardcoding properties at the moment
-    elements.inclination += cfg::PI/2;
+    elements.inclination += PI/2;
     
     //elements = {0.01, 100.0, 0.0, 0.0, 80.0};
     this->elements = elements;
@@ -18,10 +18,15 @@ Orbit::Orbit(double parentMass, double mass, KeplerianElements elements)
     if (parentMass != 0.0)
     {
         // calculating mean motion
-        this->mean = sqrt(cfg::G * parentMass / pow(abs(elements.semiMajorAxis), 3)); // n = sqrt(u/|a|^3)
+        this->mean = sqrt(G * parentMass / pow(abs(elements.semiMajorAxis), 3)); // n = sqrt(u/|a|^3)
 
         // calculating sphere of influence
-        this->soi = elements.semiMajorAxis * pow(parentMass / mass, 0.4); // a*(M/m)^2/5
+        this->soi = mass;//elements.semiMajorAxis * pow(parentMass / mass, 0.4); // a*(M/m)^2/5
+    }
+    else
+    {
+        std::cout << "Sun" << std::endl;
+        this->soi = std::numeric_limits<double>::infinity();
     }
 }
 
@@ -50,4 +55,9 @@ glm::dvec3 Orbit::calculate_position()
     double z = r * (sin(v + w) * sin(i));
 
     return glm::dvec3{x, y, z};
+}
+
+double Orbit::get_soi()
+{
+    return this->soi;
 }

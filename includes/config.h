@@ -22,19 +22,20 @@
 
 // config class
 
+#define PI 3.14159
+#define G 1.0
+
 namespace cfg {
     // win parameters
     inline float winWidth = 700.0f;
     inline float winHeight = 700.0f;
 
     // player parameters
-    inline float speed = 100.0f;
+    inline float speed = 40.0f;
     inline float sensitivity = 0.1f;
     inline float fov = 45.0f;
 
     // mathematical constants
-    inline const double PI = 3.14159265359;
-    inline const double G = 1.0f;
     inline double timeSpeed = 1.0f;
 }
 

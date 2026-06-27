@@ -32,7 +32,7 @@ void DebugCamera::update_camera(float dt)
         cameraPos -= cameraSpeed*cameraUp;
     }
     
-    this->view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    this->view = glm::lookAt(cameraPos, glm::vec3{0.0f}, cameraUp);
 }
 
 // controlling rotational movement of the screen via mouse
@@ -53,5 +53,20 @@ void DebugCamera::process_mouse(double xoffset, double yoffset)
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(direction);
+
+    cameraPos = -glm::normalize(direction) * orbitRadius;
+}
+
+void DebugCamera::process_scroll(double yoffset)
+{
+    orbitRadius -= static_cast<float>(yoffset);
+
+    orbitRadius = glm::clamp(orbitRadius, 2.0f, 1000.0f);
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+    cameraPos = -glm::normalize(direction) * orbitRadius;
 }

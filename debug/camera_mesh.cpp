@@ -18,18 +18,29 @@ CameraMesh::CameraMesh(Shader &shader)
     };
 
     std::vector<unsigned int> indices = {
-        // back face
-        0,1,2, 0,2,3,
-        // front face
-        4,5,6, 4,6,7,
-        // left face
-        0,4,7, 0,7,3,
-        // right face
-        1,5,6, 1,6,2,
-        // bottom face
-        0,1,5, 0,5,4,
-        // top face
-        3,2,6, 3,6,7,
+        // back face (z = -1)
+        0, 2, 1,
+        0, 3, 2,
+
+        // front face (z = +1)
+        4, 5, 6,
+        4, 6, 7,
+
+        // left face (x = -1)
+        0, 0, 4,
+        3, 3, 7,
+
+        // right face (x = +1)
+        1, 1, 5,
+        2, 2, 6,
+
+        // bottom face (y = -1)
+        1, 1, 5,
+        0, 0, 4,
+
+        // top face (y = +1)
+        2, 2, 6,
+        3, 3, 7
     };
 
     // binding and initialising cube
